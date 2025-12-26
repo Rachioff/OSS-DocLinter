@@ -55,18 +55,20 @@ class GitHubService:
             return None
     
     async def fetch_repo_files(self, owner: str, repo: str) -> dict:
+        # 1. 扩展搜索路径：增加 .github 目录，这是现代开源项目的标准
         targets = {
             "readme": ["README.md", "readme.md", "README.rst", "README.txt"],
-            "contributing": ["CONTRIBUTING.md", ".github/CONTRIBUTING.md", "docs/CONTRIBUTING.md"],
+            "contributing": [".github/CONTRIBUTING.md", "CONTRIBUTING.md", "docs/CONTRIBUTING.md"],
             "license": ["LICENSE", "LICENSE.txt", "COPYING"],
-            "code_of_conduct": ["CODE_OF_CONDUCT.md", ".github/CODE_OF_CONDUCT.md"],
-            "security": ["SECURITY.md", ".github/SECURITY.md"],
+            "code_of_conduct": [".github/CODE_OF_CONDUCT.md", "CODE_OF_CONDUCT.md"],
+            "security": [".github/SECURITY.md", "SECURITY.md"],
             "changelog": ["CHANGELOG.md", "HISTORY.md", "RELEASES.md"]
         }
 
         results = {}
 
-        async with httpx.AsyncClient() as client:
+        # 2. 使用更长的超时时间，防止网络波动
+        async with httpx.AsyncClient(timeout=15.0) as client:
             tasks = []
             target_keys = []
 
@@ -75,20 +77,47 @@ class GitHubService:
                     tasks.append(self._fetch_single_file(client, owner, repo, path))
                     target_keys.append((key, path))
 
-            responses = await asyncio.gather(*tasks)
+            # 并发获取所有文件
+            responses = await asyncio.gather(*tasks, return_exceptions=True)
 
             found_files = {key: [] for key in targets}
 
             for i, resp in enumerate(responses):
-                if resp:
+                # 忽略异常，只处理成功的响应
+                if isinstance(resp, dict):
                     key, _ = target_keys[i]
                     found_files[key].append(resp)
 
+            # 选取第一个找到的文件
             for key, files in found_files.items():
                 if files:
                     results[key] = files[0]
                 else:
                     results[key] = None
             
+            # 3. 安全地检查 GitHub Releases (即便失败也不会影响 README)
+            # 只有当没找到 CHANGELOG 文件时才检查，节省请求资源
+            if results["changelog"] is None:
+                try:
+                    has_releases = await self._check_github_releases(client, owner, repo)
+                    if has_releases:
+                        results["changelog"] = {
+                            "path": "GitHub Releases",
+                            "content": "This project uses GitHub Releases feature for changelog."
+                        }
+                except Exception as e:
+                    print(f"Warning: Failed to check releases: {e}")
+                    # 忽略错误，不要让它导致函数崩溃
+                    pass
+            
         return results
-    
+
+    async def _check_github_releases(self, client: httpx.AsyncClient, owner: str, repo: str) -> bool:
+        """检查仓库是否有 GitHub Release 记录"""
+        # 务必加上 https://
+        url = f"https://api.github.com/repos/{owner}/{repo}/releases/latest"
+        try:
+            resp = await client.get(url, headers=self.headers)
+            return resp.status_code == 200
+        except Exception:
+            return False

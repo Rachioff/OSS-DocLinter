@@ -44,7 +44,7 @@ class Issue(BaseModel):
     description: str
     suggestion: str
     line_number: Optional[int] = None
-    score_deduction: int
+    score_deduction: float
 
 class Report(BaseModel):
     overall_score: int

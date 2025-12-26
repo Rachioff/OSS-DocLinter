@@ -98,34 +98,31 @@ class LLMService:
     ) -> str:
         """构建完整性评测的Prompt"""
         
-        return f"""请对以下开源项目文档进行完整性评测，总分70分，分为5个维度：
-                **评分标准：**
+        return f"""请对以下开源项目文档进行完整性评测。
+        
+                **评分核心原则（Modern Open Source Standards）：**
+                1. **Pip 即正义**：如果项目提供了 `pip install` 或 `npm install` 等标准包管理器命令，**无需**要求源码安装指南，该项应得满分。
+                2. **外部链接有效**：如果文档包含指向官方网站（如 readthedocs, vercel）的链接，视为内容完整，**不扣分**。
+                3. **Release 即日志**：如果 CHANGELOG 部分的内容是 "This project uses GitHub Releases feature"，视为满分。
+                4. **非侵入式贡献**：如果 CONTRIBUTING 文件仅包含指向外部贡献指南的链接，视为满分。
 
-                1. **安装与依赖指南 (20分)**
-                - 是否清晰说明了安装方式（pip/npm/cargo等）？
-                - 是否列出了系统依赖和前置条件？
-                - 是否提供了多种安装方式（如源码安装、包管理器）？
-                - 是否有版本兼容性说明？
+                **总分70分，维度如下：**
 
-                2. **快速上手/使用示例 (20分)**
-                - 是否提供了最小可运行示例？
-                - 示例代码是否完整可执行？
-                - 是否涵盖了核心功能的演示？
-                - 是否有进阶使用指南的链接？
+                1. **安装与依赖 (20分)**
+                - 是否提供了一键安装命令 (pip/npm/docker)？(有则满分，不强制要求系统依赖说明，除非是二进制工具)
+
+                2. **快速上手 (20分)**
+                - 是否有 Hello World 级别的最小示例？(有代码块即可)
 
                 3. **贡献指南 (20分)**
-                - 是否存在CONTRIBUTING.md文件？
-                - 是否说明了如何提交Issue和PR？
-                - 是否有开发环境搭建指南？
-                - 是否有代码规范和测试要求？
+                - 是否有 CONTRIBUTING 文件或相关链接？
+                - 是否提及开发环境或测试命令？(外部链接有效)
 
                 4. **行为准则 (5分)**
-                - 是否存在CODE_OF_CONDUCT.md？
-                - 内容是否明确社区行为规范？
+                - 是否有 CODE_OF_CONDUCT？
 
-                5. **许可证信息 (5分)**
-                - 是否存在LICENSE文件？
-                - 许可证类型是否清晰？
+                5. **许可证 (5分)**
+                - 是否有 LICENSE？
 
                 ---
 
@@ -252,15 +249,6 @@ class LLMService:
     ) -> str:
         """
         根据问题生成修复后的完整文档
-        
-        Args:
-            original_content: 原始文档内容
-            issue_id: 问题ID (如 missing_install)
-            issue_description: 问题描述
-            custom_instruction: 用户自定义指令
-        
-        Returns:
-            修复后的完整文档内容
         """
         prompt = self._build_fix_prompt(
             original_content,
@@ -270,7 +258,8 @@ class LLMService:
         )
         
         try:
-            async with httpx.AsyncClient(timeout=60.0) as client:
+            # [修改 1] 增加超时时间，长文档生成非常耗时，60s 往往不够
+            async with httpx.AsyncClient(timeout=180.0) as client:
                 resp = await client.post(
                     f"{self.base_url}/chat/completions",
                     headers=self.headers,
@@ -286,14 +275,23 @@ class LLMService:
                                 "content": prompt
                             }
                         ],
-                        "temperature": 0.3
+                        "temperature": 0.1, # [建议] 降低温度，对于长文档重写，稳定性比创造性更重要
+                        "max_tokens": 8192  # [修改 2] 显式增加最大输出 Token 限制，防止输出被截断
                     }
                 )
                 
                 if resp.status_code != 200:
-                    raise HTTPException(status_code=502, detail="LLM API error")
+                    # 增加更详细的错误日志
+                    raise HTTPException(status_code=502, detail=f"LLM API error: {resp.text}")
                 
                 data = resp.json()
+                
+                # 检查 finish_reason，如果不是 stop，说明还是被截断了
+                finish_reason = data["choices"][0]["finish_reason"]
+                if finish_reason == "length":
+                    # 如果依然因为长度被截断，抛出特定错误提示前端
+                    raise HTTPException(status_code=400, detail="文档过长，超出了模型单次生成的最大限制，建议分段处理。")
+
                 fixed_content = data["choices"][0]["message"]["content"]
                 
                 # 清理可能的 Markdown 代码块包裹
@@ -302,7 +300,7 @@ class LLMService:
                 return fixed_content
                 
         except httpx.TimeoutException:
-            raise HTTPException(status_code=504, detail="LLM request timeout")
+            raise HTTPException(status_code=504, detail="LLM request timeout (generation took too long)")
         except Exception as e:
             raise HTTPException(status_code=500, detail=f"LLM error: {str(e)}")
 
