@@ -60,14 +60,14 @@ app
 
 1. 克隆仓库
 
-```Bash
+```
 git clone [https://github.com/your-username/oss-linter.git](https://github.com/your-username/oss-linter.git)
 cd oss-linter
 ```
 
 2. 创建虚拟环境并安装依赖
 
-```Bash
+```
 python -m venv venv
 source venv/bin/activate  # Windows 使用 `venv\Scripts\activate`
 pip install -r requirements.txt
