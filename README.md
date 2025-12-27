@@ -1,6 +1,6 @@
 # OSS-Linter (Open Source Documentation Linter)
 
-[![Python](https://img.shields.io/badge/Python-3.9%2B-blue)]()
+[![Python](https://img.shields.io/badge/Python-3.12%2B-blue)]()
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.95%2B-009688)]()
 [![License](https://img.shields.io/badge/License-MIT-green)]()
 
