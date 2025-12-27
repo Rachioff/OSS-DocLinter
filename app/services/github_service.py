@@ -121,3 +121,41 @@ class GitHubService:
             return resp.status_code == 200
         except Exception:
             return False
+        
+    async def create_issue(self, token: str, owner: str, repo: str, title: str, body: str) -> str:
+        """
+        使用 httpx 异步创建 Issue
+        :param token: 用户的 OAuth Access Token (必须具备 public_repo 权限)
+        """
+        url = f"https://api.github.com/repos/{owner}/{repo}/issues"
+        
+        # 这里必须使用用户传进来的 token，而不是 self.default_headers
+        headers = {
+            "Accept": "application/vnd.github.v3+json",
+            "Authorization": f"Bearer {token}" 
+        }
+        
+        payload = {
+            "title": title,
+            "body": body
+        }
+
+        async with httpx.AsyncClient() as client:
+            try:
+                resp = await client.post(url, headers=headers, json=payload)
+                
+                if resp.status_code == 201:
+                    data = resp.json()
+                    return data["html_url"] # 返回 Issue 的网页链接
+                elif resp.status_code == 403:
+                     # 常见错误：Token 没权限 或 频率限制
+                    raise HTTPException(status_code=403, detail="GitHub API permission denied. Check token scope.")
+                elif resp.status_code == 404:
+                    raise HTTPException(status_code=404, detail="Target repository not found.")
+                else:
+                    raise HTTPException(
+                        status_code=resp.status_code, 
+                        detail=f"GitHub API Error: {resp.text}"
+                    )
+            except httpx.RequestError as e:
+                raise HTTPException(status_code=500, detail=f"Network error when connecting to GitHub: {str(e)}")

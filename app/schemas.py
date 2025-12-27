@@ -101,3 +101,27 @@ class PRResponse(BaseModel):
     pr_url: HttpUrl
     status: str
     message: str
+
+# --- Issue 生成相关 ---
+class IssueGenerateRequest(BaseModel):
+    repo_owner: str
+    repo_name: str
+    file_path: str
+    issue_id: str
+    issue_description: str
+    original_content: str
+
+class IssueGenerateResponse(BaseModel):
+    title: str
+    body: str
+
+# --- Issue 提交相关 ---
+class IssueCreateRequest(BaseModel):
+    target_owner: str
+    target_repo: str
+    title: str
+    body: str
+
+class IssueCreateResponse(BaseModel):
+    issue_url: str
+    status: str

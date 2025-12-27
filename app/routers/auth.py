@@ -61,3 +61,17 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
         avatar_url=user_info["avatar_url"],
         github_profile=user_info["html_url"]
     )
+
+async def get_github_token(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+    """
+    从 Bearer JWT 中解析出 github_token 字符串
+    """
+    service = AuthService()
+    # 解码 JWT
+    payload = service.decode_jwt(credentials.credentials)
+    github_token = payload.get("github_token")
+    
+    if not github_token:
+        raise HTTPException(status_code=401, detail="Invalid token payload: missing github_token")
+        
+    return github_token

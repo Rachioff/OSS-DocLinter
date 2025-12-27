@@ -339,4 +339,38 @@ class LLMService:
         if content.startswith("```markdown") and content.endswith("```"):
             return "\n".join(content.split("\n")[1:-1]).strip()
         return content.strip()
+    
+    async def generate_issue_content(self, file_path: str, issue_desc: str, context: str) -> dict:
+        """
+        生成 Issue 的标题和正文
+        """
+        system_prompt = """
+        You are an incredibly helpful open-source contributor assistant. 
+        Your goal is to write a polite, clear, and constructive GitHub Issue report based on a documentation problem.
+        The output must be in JSON format with keys: "title" and "body".
+        The "body" should be in Markdown format.
+        """
+        
+        user_prompt = f"""
+        I found a problem in the file `{file_path}`.
+        The specific issue is: "{issue_desc}".
+        
+        Here is a snippet of the file content for context:
+        {context[:2000]} # 截取部分内容避免 token 溢出
+        
+        Please generate:
+        1. A concise Title.
+        2. A Body that describes the problem and politely asks for a fix or clarification.
+        """
+
+        # 模拟调用 LLM (请替换为实际的 OpenAI/LangChain 调用)
+        # response = await openai.ChatCompletion.create(...)
+        
+        # 模拟返回
+        return {
+            "title": f"Docs: Improvement needed for {file_path}",
+            "body": f"## Problem Description\n\nI noticed that in `{file_path}`, {issue_desc}.\n\n## Context\nIt would be great to improve this to help new users."
+        }
+    
+    
 
