@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from app.schemas import IssueGenerateRequest, IssueGenerateResponse, IssueCreateRequest, IssueCreateResponse
 from app.services.issue_service import IssueService
-from app.routers.auth import get_github_token # 假设你有这个依赖获取 Token
+from app.routers.auth import get_github_token
 
 router = APIRouter(prefix="/issue", tags=["Issue"])
 issue_service = IssueService()
