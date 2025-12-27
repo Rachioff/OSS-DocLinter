@@ -4,7 +4,7 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.95%2B-009688)]()
 [![License](https://img.shields.io/badge/License-MIT-green)]()
 
-**OSS-Linter** 是一个智能化的开源项目文档评估与修复平台。它利用 **LLM (大语言模型)** 和 **静态分析工具 (Linters)**，自动检测 GitHub 仓库中的文档（如 README, Contributing, License 等）的完整性与规范性，并提供一键式的自动化修复和 Issue 提交功能。
+**OSS-Linter** 是一个智能化的开源项目文档评估与修复平台，是一个Web应用形式的软件。它利用 **LLM (大语言模型)** 和 **静态分析工具 (Linters)**，自动检测 GitHub 仓库中的文档（如 README, Contributing, License 等）的完整性与规范性，并提供一键式的自动化修复和 Issue 提交功能。
 
 
 
