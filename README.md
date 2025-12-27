@@ -1,12 +1,10 @@
 # OSS-Linter (Open Source Documentation Linter)
 
-[![Python](https://img.shields.io/badge/Python-3.12%2B-blue)]()
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.95%2B-009688)]()
-[![License](https://img.shields.io/badge/License-MIT-green)]()
+[![Python](https://img.shields.io/badge/Python-3.12%2B-blue)](https://www.python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.95%2B-009688)](https://fastapi.tiangolo.com/)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
 **OSS-Linter** 是一个智能化的开源项目文档评估与修复平台，是一个Web应用形式的软件。它利用 **LLM (大语言模型)** 和 **静态分析工具 (Linters)**，自动检测 GitHub 仓库中的文档（如 README, Contributing, License 等）的完整性与规范性，并提供一键式的自动化修复和 Issue 提交功能。
-
-
 
 ## ✨ 核心特性
 
@@ -26,7 +24,7 @@
 
 ## 📂 项目结构
 
-```text
+```
 app
 ├── routers/          # API 路由层
 │   ├── analysis.py   # 文档抓取与分析
@@ -58,43 +56,43 @@ app
 
 > 本项目推荐您使用uv作为项目包管理工具
 
-1. 克隆仓库
+1.  克隆仓库
 
-```
-git clone [https://github.com/your-username/oss-linter.git](https://github.com/your-username/oss-linter.git)
-cd oss-linter
-```
+    ```bash
+    git clone https://github.com/your-username/oss-linter.git
+    cd oss-linter
+    ```
 
-2. 创建虚拟环境并安装依赖
+2.  创建虚拟环境并安装依赖
 
-```
-python -m venv venv
-source venv/bin/activate  # Windows 使用 `venv\Scripts\activate`
-pip install -r requirements.txt
-```
+    ```bash
+    python -m venv venv
+    source venv/bin/activate  # Windows 使用 `venv\Scripts\activate`
+    pip install -r requirements.txt
+    ```
 
-3. 配置环境变量 复制 `.env.example` 为 `.env` 并填入以下信息：
+3.  配置环境变量 复制 `.env.example` 为 `.env` 并填入以下信息：
 
-```Ini, TOML
-# App Config
-APP_ENV=development
+    ```ini
+    # App Config
+    APP_ENV=development
 
-# GitHub OAuth
-GITHUB_CLIENT_ID=your_client_id
-GITHUB_CLIENT_SECRET=your_client_secret
+    # GitHub OAuth
+    GITHUB_CLIENT_ID=your_client_id
+    GITHUB_CLIENT_SECRET=your_client_secret
 
-# GitHub Token (用于后端只读分析，防止速率限制)
-GITHUB_TOKEN=your_personal_access_token
+    # GitHub Token (用于后端只读分析，防止速率限制)
+    GITHUB_TOKEN=your_personal_access_token
 
-# LLM
-OPENAI_API_KEY=sk-xxxx
-```
+    # LLM
+    OPENAI_API_KEY=sk-xxxx
+    ```
 
-4. 启动服务
+4.  启动服务
 
-```Bash
-uvicorn app.main:app --reload
-```
+    ```bash
+    uvicorn app.main:app --reload
+    ```
 
 ## 🤝 贡献
 
@@ -103,4 +101,3 @@ uvicorn app.main:app --reload
 ## 📄 许可证
 
 本项目采用 `MIT License` 开源。
-
