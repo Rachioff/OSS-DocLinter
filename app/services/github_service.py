@@ -58,7 +58,8 @@ class GitHubService:
         # 1. 扩展搜索路径：增加 .github 目录，这是现代开源项目的标准
         targets = {
             "readme": ["README.md", "readme.md", "README.rst", "README.txt"],
-            "contributing": [".github/CONTRIBUTING.md", "CONTRIBUTING.md", "docs/CONTRIBUTING.md"],
+            "contributing": [".github/CONTRIBUTING.md", "CONTRIBUTING.md", "docs/CONTRIBUTING.md", "Contributing.md", 
+                             "contributing.md"],
             "license": ["LICENSE", "LICENSE.txt", "COPYING"],
             "code_of_conduct": [".github/CODE_OF_CONDUCT.md", "CODE_OF_CONDUCT.md"],
             "security": [".github/SECURITY.md", "SECURITY.md"],
