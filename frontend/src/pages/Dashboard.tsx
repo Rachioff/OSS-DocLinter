@@ -1,14 +1,17 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Card, Row, Col, Statistic, List, Tag, Button, Typography, Progress, Alert, Space, Tooltip } from 'antd';
+// 1. 添加 message 到引用列表
+import { Card, Row, Col, Statistic, List, Tag, Button, Typography, Progress, Alert, Space, Tooltip, message } from 'antd';
 import { CheckCircleOutlined, WarningOutlined, BugOutlined, ToolOutlined, ArrowLeftOutlined, FileTextOutlined, GithubOutlined } from '@ant-design/icons';
 import { AnalyzeResponse, Issue } from '../types';
+import { MessageOutlined } from '@ant-design/icons';
 
 const { Title, Text } = Typography;
 
 const Dashboard: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  // 获取 /analyze 接口返回的完整数据
   const data = location.state?.data as AnalyzeResponse;
 
   if (!data) {
@@ -30,6 +33,7 @@ const Dashboard: React.FC = () => {
     );
   }
 
+  // 解构出 files (这里面包含了 README.md 等文件的原始内容字符串)
   const { report, repo_info, files } = data;
 
   const getSeverityColor = (severity: string) => {
@@ -42,7 +46,45 @@ const Dashboard: React.FC = () => {
   };
 
   const handleFix = (issue: Issue) => {
-    navigate('/fix', { state: { issue, fileContent: files[issue.file], repoInfo: repo_info } });
+    const content = findFileContent(issue.file);
+
+    navigate('/fix', { 
+      state: { 
+        issue, 
+        fileContent: content, 
+        repoInfo: repo_info,
+        dashboardData: data 
+      } 
+    });
+  };
+
+  const findFileContent = (fileName: string) => {
+    // 1. 尝试精确或模糊查找文件
+    const fileEntries = Object.values(files) as any[];
+    const targetFile = fileEntries.find(f => f && f.path === fileName);
+    
+    // 2. 如果找到了，返回内容
+    if (targetFile && targetFile.content) {
+        return targetFile.content;
+    }
+
+    // 3. [关键修改] 如果没找到，说明是缺失文件（例如缺失 CONTRIBUTING.md）
+    // 返回特定的占位符字符串，告知后端和 LLM "这个文件不存在"
+    return "当前仓库内无此文件";
+  };
+
+  // [新增] 处理 Issue 跳转
+  const handleIssue = (issue: Issue) => {
+    const content = findFileContent(issue.file);
+
+    navigate('/issue', { 
+      state: { 
+        issue, 
+        fileContent: content, 
+        repoInfo: repo_info,
+        dashboardData: data 
+      } 
+    });
   };
 
   const scoreColor = report.overall_score >= 80 ? '#52c41a' : report.overall_score >= 60 ? '#faad14' : '#ff4d4f';
@@ -117,6 +159,10 @@ const Dashboard: React.FC = () => {
                       background: '#fafafa'
                   }}
                   actions={[
+                    <Button icon={<MessageOutlined />} 
+                      onClick={() => handleIssue(item)}>
+                      提 Issue
+                    </Button>,
                     <Button type="primary" icon={<ToolOutlined />} onClick={() => handleFix(item)}>
                       生成修复方案
                     </Button>

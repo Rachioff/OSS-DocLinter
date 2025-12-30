@@ -5,6 +5,7 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import FixPreview from './pages/FixPreview';
 import Callback from './pages/Callback';
+import IssuePreview from './pages/IssuePreview';
 
 const App: React.FC = () => {
   return (
@@ -14,7 +15,8 @@ const App: React.FC = () => {
           <Route path="/" element={<Home />} />
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/fix" element={<FixPreview />} />
-          <Route path="/callback" element={<Callback />} />
+          <Route path="auth/callback" element={<Callback />} />
+          <Route path="/issue" element={<IssuePreview />} />
         </Routes>
       </Layout>
     </Router>
